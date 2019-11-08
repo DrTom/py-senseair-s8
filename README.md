@@ -1,30 +1,51 @@
+SenseAirS8 CO2-Sensor Asynchronous Device Library for Python
+============================================================
+
+This library supports reading of CO2 values from a SenseAir S8 via UART.
+Supported Python implementations are MicroPython or regular Python (cPython).
+This library supports **asynchronous**, and synchronous access, the latter is
+mostly only useful for testing or demonstration.
+
+The coded has been successfully tested with
+* MicroPython 1.11 on a ESP32 Wrover DevBoard
+* Python 3.7 on MacOS with a USB-UART adapter
+
+Caveats with respect to the Sensor Family
+-----------------------------------------
+
+SenseAir S8 comprises a family of CO2 sensors. They look very much
+alike but there are different pinouts and protocols. This library supports the
+SenseAir S8 004-0-0053.
+
+Dependencies
+------------
+
+* MicroPython (1.11 tested) or Python (3.7 tested)
+* logging, see [micropython-logging] for MicroPython
+* asyncio, or [uasyncio] for MicroPython
+
+Usage
+-----
+
+The following is a synchronous example for MicroPython.
 
 ~~~python
-import logging
-from machine import UART
 from SenseAirS8 import *
 
-logging.getLogger('SenseAirS8').setLevel(logging.DEBUG)
+# MicroPython on microcontrollers adjust pins:
+TX_PIN=12
+RX_PIN=13
 
-uart = UART(1, 9600, tx=12, rx=13, timeout=100)
-s8 = SenseAirS8(uart)
-s8.read_synchronized()
-
-~~~
-
-
-
-~~~python
-import logging
 from machine import UART
-from SenseAirS8 import *
+uart = UART(1, 9600, tx=TX_PIN, rx=RX_PIN, timeout=100)
 
-logging.getLogger('SenseAirS8').setLevel(logging.DEBUG)
-
-uart = UART(1, 9600, tx=12, rx=13, timeout=100)
-s8as = SenseAirS8as(uart)
-
-import uasyncio as asyncio
-loop = asyncio.get_event_loop()
-loop.run_forever()
+s8sync = SenseAirS8(uart)
+print("sync readout {}".format(s8sync.read_synchronized()))
 ~~~
+
+For advanced usage see the provided code in [main.py](./main.py) and
+of the source code in [SenseAirS8/](./SenseAirS8/).
+
+
+[micropython-logging]: https://pypi.org/project/micropython-logging/
+[uasyncio]: https://pypi.org/project/micropython-uasyncio/
