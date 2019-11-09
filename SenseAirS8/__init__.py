@@ -83,16 +83,15 @@ class SenseAirS8as(SenseAirS8):
         try:
             if self.loop_id == loop_id:
                 self.uart.write(self.REQUEST_CO2_CMD)
-                if sys.implementation.name == 'cpython':
-                    await asyncio.sleep(0.1)
-                else:
-                    await asyncio.sleep_ms(100)
+                await asyncio.sleep(0.1)
             if self.loop_id == loop_id:
                 self.read_co2()
         except Exception as e:
             self.readout= { "error": str(e)}
             self.logger.error(str(e))
         s = 0
+
+
         while s < self.intervall_secs and loop_id == self.loop_id:
             s += 1
             await asyncio.sleep(1)

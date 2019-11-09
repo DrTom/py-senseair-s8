@@ -1,6 +1,7 @@
 from SenseAirS8 import *
 import logging
 import sys
+import time
 try:
     import uasyncio as asyncio
 except ImportError:
@@ -59,8 +60,8 @@ s8async = SenseAirS8as(uart)
 async def print_readout_loop():
     await asyncio.sleep(5)
     while True:
-        print("async readout {}".format(s8async.readout))
-        await asyncio.sleep(60)
+        print("CO2 {} {}".format(s8async.readout['value'], time.localtime()))
+        await asyncio.sleep(60 * 15)
 
 loop = asyncio.get_event_loop()
 loop.create_task(print_readout_loop())
