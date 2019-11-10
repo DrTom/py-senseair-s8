@@ -51,12 +51,12 @@ Limitations and Restrictions
 ----------------------------
 
 * The implementation of the Modbus protocol does not perform CRC at this time.
-*
+
 * Only the CO2 read command is implemented.
-*
+
 * There seem to be variations of the S8 Modbus protocol around. This library
   supports the CO2 read command starting with `xFE x44`. There exists a S8
-  Modubs documentation which describes a CO2 read command starting with `xFE
+  Modbus documentation which describes a CO2 read command starting with `xFE
   x04`. This protocol is not supported at this time.
 
 
