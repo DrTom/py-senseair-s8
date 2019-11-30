@@ -6,6 +6,7 @@ import random as random
 import time as time
 import math as math
 import logging as logging
+import sense_air_s8.modbus_crc as modbus_crc
 
 import sys
 if sys.implementation.name == 'cpython':
@@ -22,7 +23,6 @@ class SenseAirS8():
         self.uart = uart
         self.logger = logging.getLogger('SenseAirS8')
         self.readout = {}
-        self.resp = b''
         self.logger.info(" initialized ")
 
     def format_ba(self,ba):
@@ -40,19 +40,20 @@ class SenseAirS8():
             bytes_avail = self.uart_bytes_available()
             if bytes_avail != 7:
                 raise Exception("expect 7 bytes from uart, but {} available".format(bytes_avail))
-            self.resp = self.uart.read(7)
-            self.logger.debug("resp {}".format(self.resp))
+            self.raw_readout = self.uart.read(7)
             read_end= ticks_us()
             self.logger.debug(
                     "UART received [{:s}] in : {:d} us".format(
-                        self.format_ba(self.resp), read_end-read_start))
-            high = self.resp[3]
-            low = self.resp[4]
+                        self.format_ba(self.raw_readout), read_end-read_start))
+            if not modbus_crc.check(self.raw_readout):
+                raise ValueError("CRC Error {}".format(self.raw_readout))
+            high = self.raw_readout[3]
+            low = self.raw_readout[4]
             co2 = (high*256) + low
             self.readout= {
                 "value": co2,
                 "timestamp": time.time()}
-            self.logger.debug(" readout {:s}".format(str(self.readout)))
+            self.logger.debug(" readout {}".format(self.readout))
         except Exception as ex:
             err_msg = '{}'.format(ex)
             self.logger.error(err_msg)
@@ -76,8 +77,12 @@ class SenseAirS8as(SenseAirS8):
         self.intervall_secs = intervall_secs
         self.loop = asyncio.get_event_loop()
         self.loop_id = None
+        self.update_handlers = {}
         self.logger.info(" initialized, intervall_secs {:d} ".format(intervall_secs))
         self.re_start_async_loop()
+
+    def add_update_handler(self, key, handler):
+        self.update_handlers[key]=handler
 
     async def read_async_loop(self, loop_id):
         try:
@@ -86,12 +91,14 @@ class SenseAirS8as(SenseAirS8):
                 await asyncio.sleep(0.1)
             if self.loop_id == loop_id:
                 self.read_co2()
+            for k in self.update_handlers:
+                handler = self.update_handlers[k]
+                self.logger.debug("invoking handler for key {}".format(k))
+                await handler(self.readout)
         except Exception as e:
             self.readout= { "error": str(e)}
             self.logger.error(str(e))
         s = 0
-
-
         while s < self.intervall_secs and loop_id == self.loop_id:
             s += 1
             await asyncio.sleep(1)

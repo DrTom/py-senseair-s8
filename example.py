@@ -1,4 +1,4 @@
-from SenseAirS8 import *
+from sense_air_s8 import *
 import logging
 import sys
 import time
@@ -36,11 +36,10 @@ else:
 ### logging ####################################################################
 ################################################################################
 
-s8_logger = logging.getLogger('SenseAirS8')
-# s8_logger.setLevel(logging.DEBUG)
+logger = logging.getLogger('')
 
 if sys.implementation.name == 'cpython':
-    s8_logger.addHandler(logging.StreamHandler())
+    logger.addHandler(logging.StreamHandler())
 
 
 ################################################################################
@@ -48,6 +47,7 @@ if sys.implementation.name == 'cpython':
 ################################################################################
 
 s8sync = SenseAirS8(uart)
+s8sync.logger.setLevel(logging.DEBUG)
 print("sync readout {}".format(s8sync.read_synchronized()))
 
 
@@ -55,14 +55,18 @@ print("sync readout {}".format(s8sync.read_synchronized()))
 ### asynchronous mode ##########################################################
 ################################################################################
 
-s8async = SenseAirS8as(uart)
+async def co2_update_handler(update):
+    logger.debug("co2_update_handler {}".format(update))
+    raw = update["value"]
+    rounded = round(raw/50.0)*50
+    print("{} CO2: {} raw: {}".format(round(time.time()),rounded,raw))
 
-async def print_readout_loop():
-    await asyncio.sleep(5)
-    while True:
-        print("CO2 {} {}".format(s8async.readout['value'], time.localtime()))
-        await asyncio.sleep(60 * 15)
+s8async = SenseAirS8as(uart)
+s8sync.logger.setLevel(logging.DEBUG)
+s8async.add_update_handler("print_handler", co2_update_handler)
+
+
+################################################################################
 
 loop = asyncio.get_event_loop()
-loop.create_task(print_readout_loop())
 loop.run_forever()

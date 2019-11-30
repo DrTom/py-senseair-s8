@@ -30,7 +30,7 @@ Usage
 The following is a synchronous example for MicroPython.
 
 ~~~python
-from SenseAirS8 import *
+from sense_air_s8 import *
 
 # MicroPython on microcontrollers adjust pins:
 TX_PIN=12
@@ -43,14 +43,12 @@ s8sync = SenseAirS8(uart)
 print("sync readout {}".format(s8sync.read_synchronized()))
 ~~~
 
-For advanced usage see the provided code in [main.py](./main.py) and
-of the source code in [SenseAirS8/](./SenseAirS8/).
+See also [example.py](./example.py) and
+of the source code in [sense_air_s8/](./sense_air_s8/).
 
 
 Limitations and Restrictions
 ----------------------------
-
-* The implementation of the Modbus protocol does not perform CRC at this time.
 
 * Only the CO2 read command is implemented.
 
@@ -58,7 +56,6 @@ Limitations and Restrictions
   supports the CO2 read command starting with `xFE x44`. There exists a S8
   Modbus documentation which describes a CO2 read command starting with `xFE
   x04`. This protocol is not supported at this time.
-
 
 
 [micropython-logging]: https://pypi.org/project/micropython-logging/
